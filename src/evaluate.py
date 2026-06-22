@@ -8,10 +8,13 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 from src.data_loader import download_ohlcv, create_features, create_windows
 
 import tensorflow as tf
+import joblib
+
 
 def load_meta(meta_path):
     with open(meta_path, 'r') as f:
         return json.load(f)
+
 
 def invert_scaling(scaler, data, feature_index):
     # data shape: (n_samples, horizon) scaled for that feature channel in create_windows (Close index)
@@ -21,6 +24,7 @@ def invert_scaling(scaler, data, feature_index):
     dummy[:, feature_index] = data.reshape(-1)
     inverted = scaler.inverse_transform(dummy)[:, feature_index]
     return inverted.reshape(n, horizon)
+
 
 def main(args):
     ticker = args.ticker
@@ -43,12 +47,25 @@ def main(args):
     train_n = int(len(X) * 0.85)
     X_test, y_test = X[train_n:], y[train_n:]
 
-    model = tf.keras.models.load_model(model_path)
+    # load model without compiling to avoid deserialization issues with legacy HDF5 training configs
+    model = tf.keras.models.load_model(model_path, compile=False)
     pred = model.predict(X_test)
 
-    scaler = meta.get('scaler', None)
+    # try to load a persisted scaler saved during training, fall back to the scaler returned by create_windows
+    model_dir = model_path if os.path.isdir(model_path) else os.path.dirname(model_path)
+    scaler_file = os.path.join(model_dir, 'scaler.joblib')
+    scaler = None
+    if os.path.exists(scaler_file):
+        try:
+            scaler = joblib.load(scaler_file)
+        except Exception as e:
+            print('Warning: failed to load scaler.joblib:', e)
+            scaler = meta.get('scaler', None)
+    else:
+        scaler = meta.get('scaler', None)
+
     if scaler is None:
-        print('No scaler found in metadata; results will remain scaled.')
+        print('No scaler found in metadata or saved scaler; results will remain scaled.')
         y_true = y_test
         y_pred = pred
     else:
@@ -79,6 +96,7 @@ def main(args):
             os.makedirs(out, exist_ok=True)
             plt.savefig(os.path.join(out, f'pred_{i}.png'))
             plt.close()
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
