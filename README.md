@@ -1,23 +1,128 @@
-# stock-price-prediction
+# 📈 Stock Price Prediction
 
-Starter project for multi-step stock price prediction using TensorFlow.
-- Models: LSTM baseline and simple Transformer alternative.
-- Data: OHLCV via `yfinance` or local CSVs.
-- Default settings: 60-step input window, 7-day prediction horizon, MinMax scaling.
+![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python)
+![TensorFlow](https://img.shields.io/badge/TensorFlow-2.x-orange?logo=tensorflow)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-Quick start
-1. Create and activate a Python 3.9+ virtual environment.
-2. pip install -r requirements.txt
-3. Train an LSTM on AAPL (defaults):
-   python src/train.py --ticker AAPL --model lstm
-4. Evaluate:
-   python src/evaluate.py --ticker AAPL --model models/lstm_latest --plot
+> Multi-step stock price prediction using **LSTM** and **Transformer** models built with TensorFlow.  
+> Predicts the next **7 days** of closing prices from a **60-step** historical window.
 
-Files
-- notebooks/stock_price_prediction.ipynb — interactive notebook
-- src/data_loader.py — data download & preprocessing
-- src/model.py — model definitions
-- src/train.py — training CLI
-- src/evaluate.py — evaluation CLI
+---
 
-License: MIT
+## 🗂️ Project Structure
+
+```
+stock-price-prediction/
+├── example_data/          # Sample CSV datasets
+├── notebooks/
+│   └── stock_price_prediction.ipynb   # Interactive walkthrough
+├── src/
+│   ├── data_loader.py     # Data download & preprocessing
+│   ├── model.py           # LSTM & Transformer model definitions
+│   ├── train.py           # Training CLI
+│   └── evaluate.py        # Evaluation & plotting CLI
+├── requirements.txt
+└── README.md
+```
+
+---
+
+## ⚡ Quick Start
+
+### 1. Set up your environment
+
+```bash
+python -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+### 2. Train the LSTM model on AAPL
+
+```bash
+python src/train.py --ticker AAPL --model lstm
+```
+
+### 3. Evaluate and plot predictions
+
+```bash
+python src/evaluate.py --ticker AAPL --model models/lstm_latest --plot
+```
+
+---
+
+## 📊 Sample Output
+
+After running evaluation, you'll see a plot like this:
+
+```
+Epoch 1/50 - loss: 0.0412 - val_loss: 0.0389
+Epoch 2/50 - loss: 0.0298 - val_loss: 0.0271
+...
+Epoch 50/50 - loss: 0.0091 - val_loss: 0.0104
+
+Test MAE  : 2.47
+Test RMSE : 3.81
+```
+
+> 📌 **Tip:** Use `--plot` flag with `evaluate.py` to save a prediction vs. actual chart to `outputs/`.
+
+---
+
+## 🧠 Models
+
+| Model       | Description                                  | Default Config          |
+|-------------|----------------------------------------------|-------------------------|
+| LSTM        | 2-layer stacked LSTM with dropout            | 128 units, dropout=0.2  |
+| Transformer | Single-head attention + feedforward layers   | d_model=64, heads=4     |
+
+Switch between them via the `--model` flag:
+
+```bash
+python src/train.py --ticker TSLA --model transformer
+```
+
+---
+
+## 📦 Data
+
+- Source: [`yfinance`](https://github.com/ranaroussi/yfinance) or local CSVs in `example_data/`
+- Features: **OHLCV** (Open, High, Low, Close, Volume)
+- Scaling: **MinMax normalization** per feature
+- Input window: **60 time steps**
+- Prediction horizon: **7 days**
+
+---
+
+## 🔧 Requirements
+
+```
+tensorflow>=2.10
+yfinance
+numpy
+pandas
+matplotlib
+scikit-learn
+```
+
+Install all with:
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## 📓 Notebook
+
+Open the interactive notebook for a step-by-step walkthrough:
+
+```bash
+jupyter notebook notebooks/stock_price_prediction.ipynb
+```
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** — see [LICENSE](LICENSE) for details.
