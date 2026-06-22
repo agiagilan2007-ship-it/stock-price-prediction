@@ -17,7 +17,8 @@ def create_features(df: pd.DataFrame) -> pd.DataFrame:
     df2 = df.copy()
     df2['Return'] = df2['Close'].pct_change().fillna(0)
     df2['HL_PCT'] = (df2['High'] - df2['Low']) / df2['Low']
-    df2 = df2.fillna(method='ffill').fillna(0)
+    # Use forward-fill method via .ffill() to remain compatible with pandas 3.x
+    df2 = df2.ffill().fillna(0)
     return df2
 
 def create_windows(df: pd.DataFrame, window: int = 60, horizon: int = 7,
