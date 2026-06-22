@@ -8,6 +8,7 @@ from src.data_loader import download_ohlcv, create_features, create_windows, tra
 from src.model import build_lstm_model, build_transformer_model
 
 import tensorflow as tf
+import joblib
 
 def save_metadata(path, meta):
     with open(path, 'w') as f:
@@ -59,6 +60,15 @@ def main(args):
     # save final model and metadata
     model.save(os.path.join(out_dir, 'final.h5'))
     save_metadata(os.path.join(out_dir, 'meta.json'), meta)
+
+    # persist the fitted scaler so evaluation can reuse the exact same scaling
+    scaler = meta.get('scaler', None)
+    if scaler is not None:
+        try:
+            joblib.dump(scaler, os.path.join(out_dir, 'scaler.joblib'))
+        except Exception as e:
+            print('Warning: failed to save scaler:', e)
+
     print('Saved model to', out_dir)
 
 if __name__ == '__main__':
